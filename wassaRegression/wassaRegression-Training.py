@@ -939,6 +939,16 @@ model.compile(loss='mean_absolute_error', optimizer='adam', metrics=[matthews_co
 model.fit(X, y, batch_size=batch_size, nb_epoch=train_params['LSTM'][emoNames[EMOTION]]['nb_epoch'],validation_split=None,)
 
 
+# In[402]:
+
+from IPython.display import SVG
+# from keras.utils.vis_utils import model_to_dot
+from keras.utils.visualize_util import model_to_dot
+
+s=SVG(model_to_dot(model,show_shapes=True,show_layer_names=False).create(prog='dot', format='svg'))
+s
+
+
 # In[242]:
 
 # Load ready model
@@ -1012,6 +1022,10 @@ fear.avg	0.50	0.71	0.68
 joy.svr 	0.37	0.62	0.63
 joy.lstm	0.37	0.64	0.65
 joy.avg 	0.44	0.66	0.67
+
+sadness.svr	    0.44	0.67	0.67
+sadness.lstm	0.50	0.71	0.70
+sadness.avg	    0.51	0.73	0.72
 # In[381]:
 
 import sys
