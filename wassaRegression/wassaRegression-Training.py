@@ -3,13 +3,13 @@
 
 # # Training Regression on wassa data
 
-# In[36]:
+# In[1]:
 
 emoNames = ['anger','fear','joy','sadness']
 # emoNames_hashTag = ['sadness', 'disgust', 'surprise', 'anger', 'fear', 'joy']
 
 
-# In[37]:
+# In[2]:
 
 from nltk.tokenize import TweetTokenizer
 import nltk.tokenize.casual as casual
@@ -34,7 +34,7 @@ def tokenise_tweet(text):
 tokenise_tweet.regexes = setupRegexes('twitterProAna')
 
 
-# In[38]:
+# In[3]:
 
 import subprocess
 
@@ -54,7 +54,7 @@ datasetList = ['http://saifmohammad.com/WebDocs/EmoInt%20Train%20Data/anger-rati
 # subprocess.run( ['wget'] + datasetList, stdout=subprocess.PIPE )
 
 
-# In[39]:
+# In[4]:
 
 import os
 import pandas as pd
@@ -100,27 +100,9 @@ def _get_dfs(directory):
 dfs = _get_dfs('/home/vlaand/IpythonNotebooks/wassa2017/data')    
 
 
-# In[35]:
-
-# stop_words = get_stop_words('en')
-
-x,y = 0,0
-
-for i in stop_words:
-    i = ''.join(i.split("'"))
-    try:
-        Dictionary[i]
-        x+=1
-    except:
-        print(i)
-        y+=1
-        
-print(x,y,len(stop_words),len(Dictionary))
-
-
 # ## WORD FREQUENCIES
 
-# In[42]:
+# In[8]:
 
 from collections import Counter
 from stop_words import get_stop_words
@@ -189,7 +171,7 @@ def _reduce_text(text, LANGUAGE='en', WORD_FREQUENCY_TRESHOLD = 3):
 
 # # Let the fun begin!
 
-# In[43]:
+# In[9]:
 
 import numpy as np
 
@@ -213,7 +195,7 @@ _path_wordembeddings = '/home/vlaand/data/Glove/glove.twitter.27B/glove.twitter.
 
 # ### Load training data and word embeddinbgs
 
-# In[44]:
+# In[10]:
 
 import numpy as np
 import pandas as pd
@@ -324,7 +306,7 @@ def _data_to_lists(dataTrain):
     return train_tweets, train_labels
 
 
-# In[8]:
+# In[11]:
 
 Dictionary, Indices = _load_original_vectors(
         filename = '/home/vlaand/data/Glove/glove.twitter.27B/glove.twitter.27B.'+str(EMBEDDINGS_DIM)+'d.txt', 
@@ -338,7 +320,7 @@ for key in Indices.keys():
 
 # #### Data conversion to an input to the model
 
-# In[45]:
+# In[12]:
 
 def dataframe_to_lists(df):
 
@@ -380,9 +362,9 @@ def _get_maxlen(tweets):
 
 # ### JUNCTION
 
-# In[369]:
+# In[13]:
 
-EMOTION = 3
+EMOTION = 0
 print(emoNames[EMOTION])
 
 train_tweets, train_labels = dataframe_to_lists(dfs['train'][emoNames[EMOTION]])
@@ -411,7 +393,7 @@ _plot_word_frequencies(wordFrequencies, WORD_FREQUENCY_TRESHOLD = WORD_FREQUENCY
 
 # ### Preparing for SVR
 
-# In[370]:
+# In[14]:
 
 from sklearn.feature_extraction.text import CountVectorizer
 
@@ -441,7 +423,7 @@ print(len(vec), len(vec[0]))
 # _save_ngramizer(ngramizer, filename = '/home/vlaand/IpythonNotebooks/05_emotion_wassa_nuig/wassaRegression/wassa_ngramizer.dump')
 
 
-# In[371]:
+# In[15]:
 
 ### NGRAM FREQUENCY
 
@@ -461,7 +443,7 @@ semilogy(natsorted(list(ngram_freq.values()),reverse=True))
 show()
 
 
-# In[372]:
+# In[16]:
 
 import numpy as np
 import math, itertools
@@ -546,7 +528,7 @@ def _convert_text_to_vector(tweets,  Dictionary, labels, ngramizer):
     return(np.asarray(_X), np.asarray(_y))
 
 
-# In[373]:
+# In[19]:
 
 # finalTraining = False
 
@@ -573,13 +555,21 @@ def _convert_text_to_vector(tweets,  Dictionary, labels, ngramizer):
 
 print('chosen emotion:', emoNames[EMOTION])
 
-svr_X, svr_y = _convert_text_to_vector(
-    tweets = train_tweets+dev_tweets,
-    labels = train_labels+dev_labels, 
+svr_X_train, svr_y_train = _convert_text_to_vector(
+    tweets = train_tweets,
+    labels = train_labels, 
     Dictionary = Dictionary, 
     ngramizer = ngramizer)
 
-print('\tdata shape:\t', svr_X.shape, svr_y.shape)  
+print('\tdata shape:\t', svr_X_train.shape, svr_y_train.shape)  
+
+svr_X_dev, svr_y_dev = _convert_text_to_vector(
+    tweets = dev_tweets,
+    labels = dev_labels, 
+    Dictionary = Dictionary, 
+    ngramizer = ngramizer)
+
+print('\tdata shape:\t', svr_X_dev.shape, svr_y_dev.shape)
 
 svr_X_test, svr_y_test = _convert_text_to_vector(
     tweets = test_tweets,
@@ -590,7 +580,7 @@ svr_X_test, svr_y_test = _convert_text_to_vector(
 print('\tdata shape:\t', svr_X_test.shape, svr_y_test.shape)
 
 
-# In[274]:
+# In[20]:
 
 from sklearn.svm import SVR, LinearSVR
 from sklearn.externals import joblib
@@ -692,7 +682,7 @@ except:
     train_params.update(temp_params)
 
 
-# In[135]:
+# In[21]:
 
 train_params = {'LSTM': {'anger': {'nb_epoch': 12},
   'fear': {'nb_epoch': 36},
@@ -756,7 +746,7 @@ train_params = {'LSTM': {'anger': {'nb_epoch': 12},
    'tol': 1e-05}}}
 
 
-# In[374]:
+# In[22]:
 
 # ESTIMATOR = 'LinearSVR'
 ESTIMATOR = 'SVR'
@@ -796,26 +786,26 @@ def saveModelFor(model, ESTIMATOR, EMOTION=0, path='/home/vlaand/IpythonNotebook
 svrTrained = joblib.load(os.path.join('/home/vlaand/IpythonNotebooks/05_emotion_wassa_nuig/wassaRegression/classifiers/','SVR',emoNames[EMOTION]+'.dump'))
 
 
-# In[375]:
+# In[24]:
 
-svrTrained.predict([ svr_X_test[0] ])[0]
+svrTrained.predict([ svr_X_dev[0] ])[0]
 
 
 # ### Preparing for LSTM
 
-# In[376]:
+# In[30]:
 
-# X_train, y_train, embedding_matrix = lists_to_vectors(train_tweets, train_labels)
-# X_dev, y_dev, embedding_matrix = lists_to_vectors(dev_tweets, dev_labels)
+X_train, y_train, embedding_matrix = lists_to_vectors(train_tweets, train_labels)
+X_dev, y_dev, embedding_matrix = lists_to_vectors(dev_tweets, dev_labels)
 X_test, y_test, embedding_matrix = lists_to_vectors(test_tweets, test_labels)
 
 # X, y, embedding_matrix = lists_to_vectors(train_tweets+dev_tweets+test_tweets, train_labels+dev_labels+test_labels)
-X, y, embedding_matrix = lists_to_vectors(train_tweets+dev_tweets, train_labels+dev_labels)
+# X, y, embedding_matrix = lists_to_vectors(train_tweets+dev_tweets, train_labels+dev_labels)
 
 
 # ## Training on WASSA dataset
 
-# In[363]:
+# In[26]:
 
 from keras.models import Sequential
 from keras.layers import Dense
@@ -903,7 +893,7 @@ for func in range(3):
 
 # ## Final Training
 
-# In[50]:
+# In[27]:
 
 try:
     train_params.update(
@@ -921,7 +911,7 @@ except:
             'sadness':{'nb_epoch':18 }}}
 
 
-# In[377]:
+# In[31]:
 
 hidden_dims1 = 50
 hidden_dims2 = 25
@@ -936,10 +926,10 @@ model.add(Dense(hidden_dims2, b_regularizer=l2(0.01)), )
 model.add(Dense(hidden_dims3, activation='softsign'))
 model.compile(loss='mean_absolute_error', optimizer='adam', metrics=[matthews_correlation])
 
-model.fit(X, y, batch_size=batch_size, nb_epoch=train_params['LSTM'][emoNames[EMOTION]]['nb_epoch'],validation_split=None,)
+model.fit(X_train, y_train, batch_size=batch_size, nb_epoch=train_params['LSTM'][emoNames[EMOTION]]['nb_epoch'],validation_split=None,)
 
 
-# In[402]:
+# In[32]:
 
 from IPython.display import SVG
 # from keras.utils.vis_utils import model_to_dot
@@ -967,7 +957,7 @@ def _load_model_emo_and_weights(filename, emo):
 
 
 
-# In[378]:
+# In[33]:
 
 # y_t_pred = model.predict(X_dev)
 
