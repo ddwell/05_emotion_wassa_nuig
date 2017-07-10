@@ -1,6 +1,6 @@
 PYVERSION=3.5
 NAME=05_emotion_wassa_nuig
-REPO=vlaand
+REPO=mixedemotions
 VERSION=latest
 PLUGINS= $(filter %/, $(wildcard */))
 
